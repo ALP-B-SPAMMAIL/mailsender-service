@@ -30,10 +30,10 @@ jobs:
 
       - name: Build and push Docker image to ACR
         run: |
-          docker build -t team04registry.azurecr.io/mail-service:${{ github.sha }} .
-          docker push team04registry.azurecr.io/mail-service:${{ github.sha }}
-          docker tag team04registry.azurecr.io/mail-service:${{ github.sha }} team04registry.azurecr.io/mail-service:latest
-          docker push team04registry.azurecr.io/mail-service:latest
+          docker build -t team04registry.azurecr.io/mailsender-service:${{ github.sha }} .
+          docker push team04registry.azurecr.io/mailsender-service:${{ github.sha }}
+          docker tag team04registry.azurecr.io/mailsender-service:${{ github.sha }} team04registry.azurecr.io/mailsender-service:latest
+          docker push team04registry.azurecr.io/mailsender-service:latest
 
   # 2. Azure AKS에 배포
   deploy_to_aks:
@@ -67,7 +67,7 @@ jobs:
         run: kubectl apply -f ./kubernetes/ingress.yaml
 
       - name: Restart deployment
-        run: kubectl rollout restart deployment/mail-service -n mail-namespace
+        run: kubectl rollout restart deployment/mailsender-service -n mailsender-namespace
 
       - name: Verify deployment
-        run: kubectl rollout status deployment/mail-service -n mail-namespace
+        run: kubectl rollout status deployment/mailsender-service -n mailsender-namespace
