@@ -2,6 +2,12 @@ package com.example.mailsender.event;
 
 import com.example.mailsender.eventDto.ReportCreatedEventDto;
 
+
+import lombok.Getter;
+import lombok.Setter;   
+
+@Getter
+@Setter
 public class ReportCreatedEvent extends AbstractEvent {
     private ReportCreatedEventDto payload;
 

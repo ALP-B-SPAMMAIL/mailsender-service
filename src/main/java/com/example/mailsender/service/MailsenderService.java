@@ -16,6 +16,8 @@ import com.example.mailsender.kafka.KafkaProducer;
 import com.example.mailsender.model.Mailsender;
 import com.example.mailsender.model.SpamStatics;
 import com.example.mailsender.model.User;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,10 +55,11 @@ public class MailsenderService {
 
     private void sendMail(String targetAddress, String mailTitle, String mailContent) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(targetAddress);
-            message.setSubject(mailTitle);
-            message.setText(mailContent);
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(targetAddress);
+            helper.setSubject(mailTitle);
+            helper.setText(mailContent, true); // true indicates HTML content
             javaMailSender.send(message);
         } catch (Exception e) {
             // 메일 전송 실패 시 로깅
@@ -68,8 +71,10 @@ public class MailsenderService {
     public void createReport() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         // 리포트 생성 로직
-        List<User> users = userRepository.findAll();
-        List<SpamStatics> spamStatics = spamStaticsRepository.findAll().subList(0, 10);
+        List<User> users = userRepository.findByEmailIsNotNull();
+        List<SpamStatics> spamStatics = spamStaticsRepository.findAll();
+        int size = spamStatics.size();
+        spamStatics = spamStatics.subList(0, size > 10 ? 10 : size);
         for (User user : users) {
             ReportRequestCreatedEventDto reportRequestCreatedEventDto = new ReportRequestCreatedEventDto();
             reportRequestCreatedEventDto.setTargetAddress(user.getEmail());

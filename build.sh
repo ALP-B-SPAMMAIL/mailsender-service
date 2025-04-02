@@ -1,8 +1,5 @@
 az acr login --name team04registry
-
-if [ -z "$1" ]; then
-    echo "Image Tag Version need in arg1"
-else
-    docker build -t team04registry.azurecr.io/mailsender-service:$1 .
-    docker push team04registry.azurecr.io/mailsender-service:$1
-fi
+docker build -t team04registry.azurecr.io/mailsender-service:latest .
+docker push team04registry.azurecr.io/mailsender-service:latest
+kubectl delete -f kubernetes/deployment.yaml  
+kubectl apply -f kubernetes/deployment.yaml
