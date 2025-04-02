@@ -26,12 +26,12 @@ public class MailsenderService {
         sendMail(targetAddress, mailTitle, mailContent);
         
         // 메일 전송 기록 저장
-        Mailsender mailsender = new Mailsender();
-        mailsender.setEmail(targetAddress);
-        mailsender.setTitle(mailTitle);
-        mailsender.setContent(mailContent);
-        mailsender.setReportId(reportCreatedEventDto.getReportId());
-        mailsender.setCreatedAt(LocalDateTime.now());
+        Mailsender mailsender = Mailsender.builder()
+            .targetAddress(targetAddress)
+            .mailTitle(mailTitle)
+            .mailContent(mailContent)
+            .sendAt(LocalDateTime.now())
+            .build();
         mailsenderRepository.save(mailsender);
     }
 
