@@ -5,17 +5,33 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.example.mailsender.repository.MailsenderRepository;
+import com.example.mailsender.repository.SpamStaticsRepository;
+import com.example.mailsender.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.mailsender.event.ReportRequestCreatedEvent;
 import com.example.mailsender.eventDto.ReportCreatedEventDto;
+import com.example.mailsender.eventDto.ReportRequestCreatedEventDto;
+import com.example.mailsender.kafka.KafkaProducer;
 import com.example.mailsender.model.Mailsender;
+import com.example.mailsender.model.SpamStatics;
+import com.example.mailsender.model.User;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class MailsenderService {
     @Autowired
     private MailsenderRepository mailsenderRepository;
-    
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private SpamStaticsRepository spamStaticsRepository;
+    @Autowired
+    private KafkaProducer kafkaProducer;
 
     public void sendReport(ReportCreatedEventDto reportCreatedEventDto) {
         // 메일 전송 로직
@@ -46,6 +62,23 @@ public class MailsenderService {
             // 메일 전송 실패 시 로깅
             e.printStackTrace();
             throw new RuntimeException("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    public void createReport() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 리포트 생성 로직
+        List<User> users = userRepository.findAll();
+        List<SpamStatics> spamStatics = spamStaticsRepository.findAll().subList(0, 10);
+        for (User user : users) {
+            ReportRequestCreatedEventDto reportRequestCreatedEventDto = new ReportRequestCreatedEventDto();
+            reportRequestCreatedEventDto.setTargetAddress(user.getEmail());
+            reportRequestCreatedEventDto.setTargetAge(user.getBirthDate());
+            reportRequestCreatedEventDto.setTargetGender(user.getGender());
+            reportRequestCreatedEventDto.setTargetInterest(user.getInterest());
+            reportRequestCreatedEventDto.setTopic(objectMapper.writeValueAsString(spamStatics));
+            ReportRequestCreatedEvent reportRequestCreatedEvent = new ReportRequestCreatedEvent(reportRequestCreatedEventDto);
+            kafkaProducer.publish(reportRequestCreatedEvent);
         }
     }
 }

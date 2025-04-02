@@ -15,7 +15,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: whowhomail2025@gmail.com
-    password: ibju maya yhbw nidi
+    password: ibju maya yhbw nidi
     properties:
       mail.smtp:
         auth: true
